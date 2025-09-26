@@ -5,9 +5,9 @@
 # Configuration variables
 HOTSPOT_SSID="ImageShare_$(openssl rand -hex 3)"  # Random SSID for security
 HOTSPOT_PASSWORD="ShareImg2024!"  # Change this to your preferred password
-HOTSPOT_IP="192.168.4.1"
-HOTSPOT_SUBNET="192.168.4.0/24"
-HOTSPOT_DHCP_RANGE="192.168.4.2,192.168.4.20,255.255.255.0,12h"
+HOTSPOT_IP="192.168.0.1"
+HOTSPOT_SUBNET="192.168.0.0/24"
+HOTSPOT_DHCP_RANGE="192.168.0.2,192.168.0.20,255.255.255.0,12h"
 
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then
@@ -40,7 +40,7 @@ setup_hostapd() {
     fi
     
     # Get WiFi country code
-    COUNTRY_CODE=$(grep "country=" /etc/wpa_supplicant/wpa_supplicant.conf | cut -d'=' -f2 | tr -d '\r\n' || echo "US")
+    COUNTRY_CODE=$(grep "country=" /etc/wpa_supplicant/wpa_supplicant.conf | cut -d'=' -f2 | tr -d '\r\n' || echo "MX")
     
     # Create hostapd config with hidden SSID
     cat > /etc/hostapd/hostapd.conf << EOF
@@ -50,10 +50,10 @@ driver=nl80211
 
 # Network name (SSID) - Hidden network
 ssid=${HOTSPOT_SSID}
-ignore_broadcast_ssid=1
+ignore_broadcast_ssid=0
 
 # WiFi channel (1-13)
-channel=7
+channel=11
 country_code=${COUNTRY_CODE}
 
 # WiFi security
@@ -101,7 +101,7 @@ dhcp-range=${HOTSPOT_DHCP_RANGE}
 # DNS settings (no internet, so use local only)
 no-resolv
 no-poll
-server=8.8.8.8  # Backup DNS, won't be used without internet
+server=1.0.1.2  # Backup DNS, won't be used without internet
 
 # Captive portal redirect (optional)
 address=/#/${HOTSPOT_IP}
@@ -176,10 +176,10 @@ LEASEFILE="/var/lib/dhcp/dhcpd.leases"
 case "$1" in
     "list")
         echo "Connected devices:"
-        arp -a | grep -E "192\.168\.4\.[0-9]+" | awk '{print $1 " " $2}'
+        arp -a | grep -E "192\.168\.0\.[0-9]+" | awk '{print $1 " " $2}'
         ;;
     "count")
-        arp -a | grep -E "192\.168\.4\.[0-9]+" | wc -l
+        arp -a | grep -E "192\.168\.0\.[0-9]+" | wc -l
         ;;
     "kick")
         if [ -n "$2" ]; then
@@ -220,7 +220,7 @@ generate_qr_info() {
 SSID: ${HOTSPOT_SSID}
 Password: ${HOTSPOT_PASSWORD}
 IP Address: ${HOTSPOT_IP}
-Hidden Network: YES
+Hidden Network: NO
 
 QR Code Data (for WiFi connection):
 ${QR_DATA}
