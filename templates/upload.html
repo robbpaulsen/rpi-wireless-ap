@@ -1,0 +1,174 @@
+<!-- upload.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparte tus Recuerdos 📸</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            color: white; padding: 20px;
+        }
+        .container { 
+            background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+            padding: 40px; border-radius: 20px; text-align: center; max-width: 500px; width: 100%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        h1 { margin-bottom: 30px; font-size: 2.5em; }
+        .upload-area {
+            border: 3px dashed rgba(255,255,255,0.5); border-radius: 15px;
+            padding: 40px 20px; margin: 30px 0; cursor: pointer;
+            transition: all 0.3s ease; background: rgba(255,255,255,0.05);
+        }
+        .upload-area:hover { border-color: white; background: rgba(255,255,255,0.1); }
+        .upload-area.dragover { border-color: #4CAF50; background: rgba(76,175,80,0.1); }
+        input[type="file"] { display: none; }
+        .upload-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white; padding: 15px 30px; border: none; border-radius: 50px;
+            font-size: 18px; cursor: pointer; margin-top: 20px;
+            transition: transform 0.2s ease;
+        }
+        .upload-btn:hover { transform: translateY(-2px); }
+        .upload-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .file-list { margin-top: 20px; text-align: left; }
+        .file-item { 
+            background: rgba(255,255,255,0.1); padding: 10px; margin: 5px 0;
+            border-radius: 8px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .progress-bar {
+            width: 100%; height: 4px; background: rgba(255,255,255,0.2);
+            border-radius: 2px; margin-top: 20px; overflow: hidden; display: none;
+        }
+        .progress-fill {
+            height: 100%; background: #4CAF50; width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 Comparte tus Recuerdos</h1>
+        <p>Selecciona las fotos que quieres compartir del evento</p>
+        
+        <div class="upload-area" id="uploadArea">
+            <p>📁 Arrastra las fotos aquí o haz clic para seleccionar</p>
+            <input type="file" id="fileInput" multiple accept="image/*">
+        </div>
+        
+        <div class="file-list" id="fileList"></div>
+        
+        <button class="upload-btn" id="uploadBtn" disabled>
+            🚀 Subir Fotos
+        </button>
+        
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        
+        let selectedFiles = [];
+
+        // File selection handlers
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            selectedFiles = Array.from(files);
+            updateFileList();
+            uploadBtn.disabled = selectedFiles.length === 0;
+        }
+
+        function updateFileList() {
+            fileList.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span>${file.name}</span>
+                    <button onclick="removeFile(${index})" style="background:rgba(255,0,0,0.2);border:none;border-radius:50%;width:25px;height:25px;color:white;cursor:pointer;">✕</button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+            uploadBtn.disabled = selectedFiles.length === 0;
+        }
+
+        uploadBtn.addEventListener('click', uploadFiles);
+
+        function uploadFiles() {
+            if (selectedFiles.length === 0) return;
+            
+            const formData = new FormData();
+            selectedFiles.forEach(file => {
+                formData.append('files[]', file);
+            });
+            
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '⏳ Subiendo...';
+            progressBar.style.display = 'block';
+            
+            const xhr = new XMLHttpRequest();
+            
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percentComplete = (e.loaded / e.total) * 100;
+                    progressFill.style.width = percentComplete + '%';
+                }
+            });
+            
+            xhr.addEventListener('load', () => {
+                if (xhr.status === 200) {
+                    window.location.href = '/disconnect';
+                } else {
+                    alert('Error al subir las fotos. Intenta de nuevo.');
+                    uploadBtn.disabled = false;
+                    uploadBtn.innerHTML = '🚀 Subir Fotos';
+                    progressBar.style.display = 'none';
+                }
+            });
+            
+            xhr.addEventListener('error', () => {
+                alert('Error de conexión. Verifica tu conexión WiFi.');
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '🚀 Subir Fotos';
+                progressBar.style.display = 'none';
+            });
+            
+            xhr.open('POST', '/upload');
+            xhr.send(formData);
+        }
+    </script>
+</body>
+</html>

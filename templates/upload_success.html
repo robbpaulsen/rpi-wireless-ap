@@ -1,0 +1,62 @@
+<!-- upload_success.html - separate file -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Fotos Subidas! ✅</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            color: white; padding: 20px;
+        }
+        .container { 
+            background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+            padding: 40px; border-radius: 20px; text-align: center; max-width: 500px; width: 100%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .success-icon { font-size: 80px; margin-bottom: 20px; }
+        h1 { margin-bottom: 30px; }
+        .disconnect-btn {
+            background: linear-gradient(45deg, #FF6B6B, #FF5252);
+            color: white; padding: 15px 30px; border: none; border-radius: 50px;
+            font-size: 18px; cursor: pointer; text-decoration: none; display: inline-block;
+            margin-top: 20px; transition: transform 0.2s ease;
+        }
+        .disconnect-btn:hover { transform: translateY(-2px); }
+        .info { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">🎉</div>
+        <h1>¡Fotos Subidas Exitosamente!</h1>
+        <p>Se subieron <strong>{{ total_uploaded }}</strong> fotos al servidor.</p>
+        
+        <div class="info">
+            <p>💡 <strong>Importante:</strong></p>
+            <p>Este hotspot no tiene acceso a internet. Puedes desconectarte ahora y regresar a tu WiFi normal.</p>
+        </div>
+        
+        <a href="/disconnect" class="disconnect-btn">
+            📱 Desconectarse del Hotspot
+        </a>
+        
+        <p style="margin-top: 20px; font-size: 14px;">
+            <a href="/upload" style="color: rgba(255,255,255,0.8);">📷 Subir más fotos</a>
+        </p>
+    </div>
+    
+    <script>
+        // Auto-redirect to disconnect after 10 seconds if user doesn't click
+        setTimeout(() => {
+            if (confirm('¿Quieres desconectarte automáticamente del hotspot?')) {
+                window.location.href = '/disconnect';
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
